@@ -22,6 +22,41 @@
 
 ---
 
+## 🇨🇳 国内用户须知
+
+| 步骤 | 国内可达性 | 处理方式 |
+|------|-----------|---------|
+| `git clone` 仓库 | ⚠️ 慢/超时 | 用下方"镜像加速" or 直接下 ZIP |
+| `npm install` 安装 Claude Code | ⚠️ 慢/超时 | **脚本会自动检测并询问是否切阿里云镜像** ✅ |
+| 调用 DeepSeek API | ✅ 直连快 | 无需任何处理 |
+
+**Git clone 加速(三选一):**
+
+```bash
+# 1. 用 GitHub 加速镜像 (无梯子最稳, 推荐)
+git clone https://gh-proxy.com/https://github.com/kiki0-zz/claude-code-deepseek-setup.git
+
+# 2. 用代理 (有梯子)
+git config --global http.proxy http://127.0.0.1:7890
+git config --global https.proxy http://127.0.0.1:7890
+
+# 3. 直接下 ZIP, 不用 git
+# 浏览器打开:
+#   https://gh-proxy.com/https://github.com/kiki0-zz/claude-code-deepseek-setup/archive/refs/heads/main.zip
+```
+
+**npm 镜像不用你管** —— 脚本启动后会**自动 ping `npmjs.org`**:
+- 响应 < 3s → 用官方源
+- 响应 ≥ 3s 或失败 → 询问你是否切到阿里云 `https://registry.npmmirror.com`
+- 安装完成后**自动还原**为官方源,不污染你的系统配置 ✅
+
+如果你想**永久使用国内镜像**(免去每次询问),手动执行一次即可:
+```bash
+npm config set registry https://registry.npmmirror.com
+```
+
+---
+
 ## 🚀 快速使用
 
 ### 方式 A:一行命令(推荐)

@@ -19,9 +19,11 @@ Claude Code 一键安装与 DeepSeek API 配置脚本
 
 import os
 import sys
+import time
 import shutil
 import platform
 import subprocess
+import urllib.request
 from getpass import getpass
 from pathlib import Path
 
@@ -79,6 +81,87 @@ def run(cmd, check=False, capture=False, shell=None):
 def have(cmd):
     """检查可执行命令是否在 PATH 中。"""
     return shutil.which(cmd) is not None
+
+
+# ---------------------------------------------------------------------------
+# 国内网络优化: npm 镜像探测与切换
+# ---------------------------------------------------------------------------
+NPM_OFFICIAL_REGISTRY = "https://registry.npmjs.org/"
+NPM_CN_MIRROR         = "https://registry.npmmirror.com/"
+
+def is_npmjs_slow(timeout=4.0):
+    """探测 npmjs.org 是否慢/不可达。返回 True 表示建议切镜像。"""
+    url = "https://registry.npmjs.org/-/ping"
+    info(f"正在探测 {url} (timeout={timeout}s) ...")
+    start = time.time()
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "claude-code-setup"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            resp.read(64)  # 只读一点点, 避免下载大数据
+        cost = time.time() - start
+        if cost > 3.0:
+            warn(f"npmjs.org 响应较慢 ({cost:.1f}s), 建议使用国内镜像")
+            return True
+        ok(f"npmjs.org 响应正常 ({cost:.1f}s)")
+        return False
+    except Exception as e:
+        cost = time.time() - start
+        warn(f"无法访问 npmjs.org ({cost:.1f}s): {type(e).__name__}")
+        return True
+
+
+def get_npm_registry():
+    """读取当前 npm registry 设置。"""
+    code, out = run(["npm", "config", "get", "registry"], capture=True)
+    return out.strip() if code == 0 else ""
+
+
+def set_npm_registry(url):
+    """切换 npm registry。"""
+    code, _ = run(["npm", "config", "set", "registry", url], capture=True)
+    return code == 0
+
+
+def maybe_switch_to_cn_mirror():
+    """
+    检测网络, 如果慢则询问用户是否切换到国内镜像。
+    返回 (是否切换了, 原 registry) 元组, 用于稍后还原。
+    """
+    title("Step 1.5 / 5  网络环境探测 (npm 镜像)")
+
+    original = get_npm_registry()
+    info(f"当前 npm registry: {original}")
+
+    # 已经是国内镜像, 不用动
+    if "npmmirror" in original or "taobao" in original or "cnpmjs" in original:
+        ok("已使用国内镜像, 跳过探测")
+        return False, original
+
+    if not is_npmjs_slow():
+        return False, original
+
+    print()
+    print(f"{C.Y}检测到访问 npmjs.org 较慢, 推荐切换到阿里云镜像 (registry.npmmirror.com){C.END}")
+    print(f"{C.Y}该镜像与官方源完全同步, 安装完成后脚本会自动还原.{C.END}")
+    ans = input(f"是否切换? [Y/n]: ").strip().lower()
+    if ans == "n":
+        warn("用户拒绝切换, 继续使用原 registry (可能会很慢或失败)")
+        return False, original
+
+    if set_npm_registry(NPM_CN_MIRROR):
+        ok(f"已临时切换到 {NPM_CN_MIRROR}")
+        return True, original
+    else:
+        err("切换失败, 继续使用原 registry")
+        return False, original
+
+
+def restore_npm_registry(original):
+    """还原 npm registry 到原值, 不污染用户系统。"""
+    if set_npm_registry(original or NPM_OFFICIAL_REGISTRY):
+        ok(f"已还原 npm registry: {original or NPM_OFFICIAL_REGISTRY}")
+    else:
+        warn(f"还原 npm registry 失败, 请手动执行: npm config set registry {original or NPM_OFFICIAL_REGISTRY}")
 
 
 # ---------------------------------------------------------------------------
@@ -334,7 +417,16 @@ def main():
 
     try:
         check_dependencies()
-        install_claude_code()
+
+        # Step 1.5: 国内网络优化 (探测 + 询问是否切镜像)
+        switched, original_registry = maybe_switch_to_cn_mirror()
+        try:
+            install_claude_code()
+        finally:
+            # 不管装成功与否, 都要把 registry 还原, 避免污染用户系统
+            if switched:
+                restore_npm_registry(original_registry)
+
         cfg = collect_config()
         apply_env(cfg)
         verify()

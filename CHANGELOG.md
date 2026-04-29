@@ -5,6 +5,17 @@
 
 ---
 
+## [1.1.0] - 2026-04-29
+
+### Added
+- 🇨🇳 **国内网络优化**:启动时自动 ping `npmjs.org`,响应慢/失败时询问是否切换到阿里云镜像 `https://registry.npmmirror.com`
+- 安装完成后**自动还原** npm registry,不污染用户系统
+- README 新增「🇨🇳 国内用户须知」章节,含 GitHub clone 加速方案
+
+[1.1.0]: https://github.com/kiki0-zz/claude-code-deepseek-setup/releases/tag/v1.1.0
+
+---
+
 ## [1.0.0] - 2026-04-29
 
 🎉 **首个正式发布版本**
