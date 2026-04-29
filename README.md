@@ -57,41 +57,45 @@ npm config set registry https://registry.npmmirror.com
 
 ---
 
-## 🚀 快速使用
+## 🚀 真·一行命令安装(推荐)
 
-### 方式 A:一行命令(推荐)
+> 不用 clone、不用下载、不用 cd —— 一行命令搞定一切 ✨
 
-> 自动 clone 仓库 + 运行脚本,适合大多数人。
+### Linux / macOS
+```bash
+curl -fsSL https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.sh | bash
+```
 
-**Linux / macOS**
+### Windows PowerShell
+```powershell
+irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+```
+
+### 🇨🇳 国内加速版(无需梯子)
+```bash
+# Linux / macOS
+curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.sh | bash
+
+# Windows PowerShell
+irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+```
+
+> 入口脚本会**自动尝试 GitHub 官方源,失败时自动切到 gh-proxy.com 镜像**,所以国内用户用上面任意一条都行。
+
+---
+
+## 🐢 备用方式:手动下载后运行
+
+如果一行命令出问题,可以传统两步走:
+
+### Linux / macOS
 ```bash
 git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git && cd claude-code-deepseek-setup && python3 setup_claude_code.py
 ```
 
-**Windows (CMD)**
+### Windows (CMD)
 ```cmd
 git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git && cd claude-code-deepseek-setup && python setup_claude_code.py
-```
-
-**Windows (PowerShell)**
-```powershell
-git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git; cd claude-code-deepseek-setup; python setup_claude_code.py
-```
-
----
-
-### 方式 B:只下载单个脚本(不想要整个仓库)
-
-**Linux / macOS**
-```bash
-curl -O https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/setup_claude_code.py
-python3 setup_claude_code.py
-```
-
-**Windows (PowerShell)**
-```powershell
-iwr https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/setup_claude_code.py -OutFile setup_claude_code.py
-python setup_claude_code.py
 ```
 
 ---
