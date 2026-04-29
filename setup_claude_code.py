@@ -219,6 +219,64 @@ def check_dependencies():
 # ---------------------------------------------------------------------------
 # Step 2: 安装 Claude Code
 # ---------------------------------------------------------------------------
+def diagnose_npm_failure(stderr_text):
+    """
+    分析 npm install 的 stderr, 给出针对性解决方案。
+    返回错误类型: 'permission' | 'network' | 'unknown'
+    """
+    lower = (stderr_text or "").lower()
+
+    # 1. 权限问题 (EACCES, EPERM, permission denied)
+    perm_keywords = ["eacces", "eperm", "permission denied", "operation not permitted"]
+    if any(k in lower for k in perm_keywords):
+        print()
+        err("🔍 诊断: npm 全局目录权限不足 (EACCES/EPERM)")
+        print()
+        print(f"{C.Y}原因{C.END}: 默认 npm 全局目录 (如 /usr/lib/node_modules) 需要 root 权限,")
+        print(f"      普通用户无法写入。这是 Linux 上最常见的 npm 坑。")
+        print()
+        print(f"{C.G}{C.BOLD}推荐解决方案 (二选一, 不要用 sudo!){C.END}")
+        print()
+        print(f"  {C.BOLD}方案 A: 把 npm 全局目录改到家目录 (最快, 一次配置){C.END}")
+        print( "    mkdir -p ~/.npm-global")
+        print( "    npm config set prefix ~/.npm-global")
+        print( "    echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc")
+        print( "    source ~/.bashrc")
+        print( "    # 然后重新跑本脚本即可")
+        print()
+        print(f"  {C.BOLD}方案 B: 用 nvm 管理 Node (一劳永逸, 推荐长期方案){C.END}")
+        print( "    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash")
+        print( "    source ~/.bashrc")
+        print( "    nvm install --lts && nvm use --lts")
+        print( "    # 然后重新跑本脚本即可")
+        print()
+        print(f"{C.R}❌ 不要用 sudo 跑本脚本{C.END} —— 会把环境变量写到 root 的 ~/.bashrc, 你的普通用户用不到。")
+        return "permission"
+
+    # 2. 网络问题
+    net_keywords = ["etimedout", "econnrefused", "network", "fetch failed",
+                    "tunneling socket", "getaddrinfo", "enotfound"]
+    if any(k in lower for k in net_keywords):
+        print()
+        err("🔍 诊断: 网络访问 npm 仓库失败")
+        print()
+        print(f"{C.G}{C.BOLD}解决方案:{C.END}")
+        print( "  1. 切换到国内镜像 (安装完后建议自己再切回去):")
+        print( "       npm config set registry https://registry.npmmirror.com")
+        print( "       # 重新跑本脚本")
+        print()
+        print( "  2. 或检查代理设置 (有梯子的话):")
+        print( "       npm config set proxy http://127.0.0.1:7890")
+        print( "       npm config set https-proxy http://127.0.0.1:7890")
+        return "network"
+
+    # 3. 其他未知错误
+    print()
+    err("🔍 诊断: 未识别的 npm 错误, 请把上面的完整报错信息提交 Issue:")
+    print(f"   {C.B}https://github.com/kiki0-zz/claude-code-deepseek-setup/issues{C.END}")
+    return "unknown"
+
+
 def install_claude_code():
     title("Step 2 / 5  安装 Claude Code")
 
@@ -230,9 +288,24 @@ def install_claude_code():
             return
 
     info("正在执行: npm install -g @anthropic-ai/claude-code")
-    code, _ = run("npm install -g @anthropic-ai/claude-code")
+    # 用 capture=True 捕获 stderr 用于诊断, 同时实时打印给用户看
+    try:
+        result = subprocess.run(
+            "npm install -g @anthropic-ai/claude-code",
+            shell=True, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+        output = result.stdout or ""
+        # 实时输出, 让用户看到 npm 进度
+        print(output)
+        code = result.returncode
+    except Exception as e:
+        err(f"执行 npm 命令时异常: {e}")
+        sys.exit(1)
+
     if code != 0:
-        err("npm 全局安装失败。Linux/macOS 可能需要 sudo 权限,或修复 npm 全局目录权限。")
+        err(f"npm 全局安装失败 (exit code {code})")
+        diagnose_npm_failure(output)
         sys.exit(1)
 
     if have("claude"):
@@ -240,7 +313,9 @@ def install_claude_code():
         ok(f"Claude Code 安装完成: {out.strip()}")
     else:
         warn("已执行安装, 但当前 PATH 暂未识别到 claude 命令。")
-        warn("请关闭终端重开后再运行: claude --version")
+        warn("可能原因: npm 全局 bin 目录不在 PATH 中。")
+        warn("请运行 'npm config get prefix' 查看 npm 全局目录,")
+        warn("把其中的 bin 子目录加到 PATH 后重开终端即可。")
 
 
 # ---------------------------------------------------------------------------
