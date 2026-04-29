@@ -1,0 +1,47 @@
+name: CI
+
+# 触发时机:推送到 main / 提 PR 时自动跑
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  syntax-check:
+    name: Syntax check (${{ matrix.os }} / Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.10", "3.12"]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show environment
+        run: |
+          python --version
+          python -c "import platform; print('Platform:', platform.system(), platform.release())"
+
+      - name: Compile check (py_compile)
+        run: python -m py_compile setup_claude_code.py
+
+      - name: AST parse check
+        run: |
+          python -c "import ast, sys; ast.parse(open('setup_claude_code.py', encoding='utf-8').read()); print('AST parse OK')"
+
+      - name: Import dry-run (no side effects)
+        # 只导入模块, 不执行 main() —— 验证顶层代码无异常
+        run: |
+          python -c "import importlib.util, sys; spec = importlib.util.spec_from_file_location('s', 'setup_claude_code.py'); m = importlib.util.module_from_spec(spec); m.__name__ = 'imported_only'; spec.loader.exec_module(m); print('Import OK')"

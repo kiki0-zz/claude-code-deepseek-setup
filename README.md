@@ -2,7 +2,8 @@
 
 > 跨平台 (Windows / Linux / macOS) 的 Python 脚本,一键完成 Claude Code 安装 + DeepSeek API 接入,告别手动配置环境变量。
 
-[![Python](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/kiki0-zz/claude-code-deepseek-setup/actions/workflows/ci.yml/badge.svg)](https://github.com/kiki0-zz/claude-code-deepseek-setup/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)]()
 
