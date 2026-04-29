@@ -1,0 +1,3 @@
+# 强制 install.sh 用 LF 换行 (避免 Windows git 自动转 CRLF 导致 Linux 无法执行)
+install.sh text eol=lf
+*.sh       text eol=lf
