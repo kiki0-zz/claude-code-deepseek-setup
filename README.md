@@ -23,39 +23,65 @@
 
 ## 🚀 快速使用
 
-### 1. 下载脚本
+### 方式 A:一行命令(推荐)
 
+> 自动 clone 仓库 + 运行脚本,适合大多数人。
+
+**Linux / macOS**
 ```bash
-git clone https://github.com/<你的用户名>/<仓库名>.git
-cd <仓库名>
+git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git && cd claude-code-deepseek-setup && python3 setup_claude_code.py
 ```
 
-或者直接下载 [`setup_claude_code.py`](./setup_claude_code.py) 单个文件。
-
-### 2. 运行
-
-**Windows** (CMD 或 PowerShell):
+**Windows (CMD)**
 ```cmd
-python setup_claude_code.py
+git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git && cd claude-code-deepseek-setup && python setup_claude_code.py
 ```
 
-**Linux / macOS**:
+**Windows (PowerShell)**
+```powershell
+git clone https://github.com/kiki0-zz/claude-code-deepseek-setup.git; cd claude-code-deepseek-setup; python setup_claude_code.py
+```
+
+---
+
+### 方式 B:只下载单个脚本(不想要整个仓库)
+
+**Linux / macOS**
 ```bash
+curl -O https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/setup_claude_code.py
 python3 setup_claude_code.py
 ```
 
-### 3. 按提示操作
-- 输入 DeepSeek API Key(在 https://platform.deepseek.com/ 注册获取)
-- 选择主模型 / 小快模型
-- 等待 `claude doctor` 跑完即可
+**Windows (PowerShell)**
+```powershell
+iwr https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/setup_claude_code.py -OutFile setup_claude_code.py
+python setup_claude_code.py
+```
 
-### 4. 启动 Claude Code
-关闭并**重新打开**终端,执行:
+---
+
+### 接下来按提示操作
+1. 粘贴 DeepSeek API Key(去 https://platform.deepseek.com/ 注册获取,**输入时不显示**,正常的)
+2. 菜单选择主模型 / 小快模型(推荐 `deepseek-v4-pro` + `deepseek-v4-flash`)
+3. 等待 `claude doctor` 自动跑完
+
+### 启动 Claude Code
+**关闭并重新打开终端**(让环境变量生效),然后:
 ```bash
 claude
 ```
 
-进入会话后输入 `/status` 可查看当前模型与端点是否生效。
+进入会话后输入 `/status` 可查看当前模型与端点是否生效 ✅
+
+---
+
+### 🔄 已经 clone 过,想拉取最新版
+
+```bash
+cd claude-code-deepseek-setup
+git pull
+python3 setup_claude_code.py   # Windows 用 python
+```
 
 ---
 
