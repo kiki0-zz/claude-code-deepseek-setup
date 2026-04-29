@@ -1,0 +1,74 @@
+name: 🐛 Bug 反馈
+description: 报告脚本运行错误或异常行为
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢花时间反馈问题!请尽量填完以下信息,这样我们能更快定位。
+
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      description: 例如 Windows 11 / Ubuntu 22.04 / macOS 14.5
+      placeholder: Windows 11 22H2
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python 版本
+      description: 终端运行 `python --version` 的输出
+      placeholder: Python 3.12.3
+    validations:
+      required: true
+
+  - type: input
+    id: node
+    attributes:
+      label: Node.js 版本
+      description: 终端运行 `node -v` 的输出
+      placeholder: v20.11.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 越详细越好
+      placeholder: |
+        1. 运行 python setup_claude_code.py
+        2. 输入 API Key 后...
+        3. 出现报错
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+      placeholder: 应该正常写入环境变量并跑完 claude doctor
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 错误日志 / 截图
+      description: 请把完整报错信息贴在下方代码块,或拖入截图
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 自查
+      options:
+        - label: 我已经在新终端中运行过脚本(setx 后必须重开窗口)
+        - label: 我已经确认 API Key 格式正确(以 sk- 开头)
+        - label: 我已经搜索过现有 Issue,确认没有重复
