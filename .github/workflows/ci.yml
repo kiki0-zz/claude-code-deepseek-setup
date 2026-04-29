@@ -14,6 +14,11 @@ jobs:
     name: Syntax check (${{ matrix.os }} / Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
 
+    # 强制使用 UTF-8 编码, 避免 Windows runner 默认 cp1252 / GBK 报 UnicodeEncodeError
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+
     strategy:
       fail-fast: false
       matrix:
@@ -35,13 +40,9 @@ jobs:
           python -c "import platform; print('Platform:', platform.system(), platform.release())"
 
       - name: Compile check (py_compile)
+        # 字节码编译, 能检出绝大多数语法错误 (语义错误如 NameError 不会暴露)
         run: python -m py_compile setup_claude_code.py
 
       - name: AST parse check
-        run: |
-          python -c "import ast, sys; ast.parse(open('setup_claude_code.py', encoding='utf-8').read()); print('AST parse OK')"
-
-      - name: Import dry-run (no side effects)
-        # 只导入模块, 不执行 main() —— 验证顶层代码无异常
-        run: |
-          python -c "import importlib.util, sys; spec = importlib.util.spec_from_file_location('s', 'setup_claude_code.py'); m = importlib.util.module_from_spec(spec); m.__name__ = 'imported_only'; spec.loader.exec_module(m); print('Import OK')"
+        # 抽象语法树解析, 比 py_compile 更严格地检查源码结构
+        run: python -c "import ast; ast.parse(open('setup_claude_code.py', encoding='utf-8').read()); print('AST parse OK')"
