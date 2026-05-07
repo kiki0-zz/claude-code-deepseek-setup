@@ -59,28 +59,50 @@ npm config set registry https://registry.npmmirror.com
 
 ## 🚀 真·一行命令安装(推荐)
 
-> 不用 clone、不用下载、不用 cd —— 一行命令搞定一切 ✨
+> 不用 clone、不用下载、不用 cd、**Git/Node.js/Python 都自动装** —— 整段复制粘贴就完事 ✨
 
 ### Linux / macOS
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.sh | bash
 ```
 
-### Windows PowerShell
+### Windows PowerShell(整段一次性粘贴回车)
 ```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force; `
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 ```
 
+> ⚠️ **Windows 用户务必用上面这一整段**,不能只执行 `irm ... | iex` 那一行。
+> 原因:PowerShell 默认 `ExecutionPolicy=Restricted` 会**静默吞掉脚本**(光标直接回到提示符,看着像没反应);PowerShell 5.1 默认禁用 TLS1.2,`irm` 也会**静默失败**。前两行就是用来绕开这两个坑的。
+
 ### 🇨🇳 国内加速版(无需梯子)
+
 ```bash
 # Linux / macOS
 curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.sh | bash
+```
 
-# Windows PowerShell
+```powershell
+# Windows PowerShell (整段一次性粘贴)
+Set-ExecutionPolicy -Scope Process Bypass -Force; `
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
 irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 ```
 
-> 入口脚本会**自动尝试 GitHub 官方源,失败时自动切到 gh-proxy.com 镜像**,所以国内用户用上面任意一条都行。
+> 入口脚本会**先尝试 GitHub 官方源,失败时自动切到 gh-proxy.com 镜像**,所以国内用户用上面任意一条都行。
+
+### 📦 Windows 自动安装的依赖
+
+入口脚本会用 `winget`(Win10 1809+ / Win11 自带)**自动**装这些,你不用动手:
+
+| 依赖 | winget Id |
+|------|-----------|
+| Python 3.12 | `Python.Python.3.12` |
+| Git | `Git.Git` |
+| Node.js LTS(自带 npm) | `OpenJS.NodeJS.LTS` |
+
+> 如果你是 Win10 1809 以前的老版本(没有 winget),脚本会给出官网下载链接让你手动装,装完重跑命令即可。
 
 ---
 
@@ -160,6 +182,19 @@ python3 setup_claude_code.py   # Windows 用 python
 ---
 
 ## ❓ 常见问题
+
+### Q0: Windows 下 `irm ... | iex` 没反应,光标直接回到提示符?
+A: 这是 Windows 上**最常见**的坑,根本原因有两个:
+1. PowerShell 默认 `ExecutionPolicy=Restricted`,会**静默拒绝**远程脚本
+2. PowerShell 5.1(Win10/11 自带版)默认禁用 TLS1.2,`Invoke-RestMethod` 拿不到 HTTPS 内容
+
+✅ **解决办法:用本 README 顶部的"整段三行"命令**,前两行就是用来解决这两个问题的:
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass -Force; `
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
+irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+```
+`-Scope Process` 表示**只对当前 PowerShell 窗口生效**,关掉就恢复,不会改你系统设置 ✅
 
 ### Q1: setx 设置完了 echo 还是空的?
 A: `setx` 写入的是**永久变量**,但**当前终端窗口看不到**。必须**关掉重开**新终端才会生效。

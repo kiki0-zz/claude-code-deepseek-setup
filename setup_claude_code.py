@@ -83,6 +83,70 @@ def have(cmd):
     return shutil.which(cmd) is not None
 
 
+def refresh_path_from_registry():
+    """
+    Windows 专用: 从注册表重新读取 PATH 并合并到当前进程,
+    用于刚通过 winget 装完工具后立即识别新命令 (否则需要重开终端)。
+    """
+    if not IS_WIN:
+        return
+    try:
+        import winreg  # 标准库, 仅 Windows 可用
+        paths = []
+        # 系统级
+        try:
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment") as k:
+                paths.append(winreg.QueryValueEx(k, "Path")[0])
+        except OSError:
+            pass
+        # 用户级
+        try:
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment") as k:
+                paths.append(winreg.QueryValueEx(k, "Path")[0])
+        except OSError:
+            pass
+        if paths:
+            os.environ["PATH"] = ";".join(p for p in paths if p) + ";" + os.environ.get("PATH", "")
+    except Exception:
+        pass  # 拿不到就算了, 不影响主流程
+
+
+# Windows winget 自动安装的依赖映射: 命令名 -> (winget Id, 友好名)
+WINGET_PACKAGES = {
+    "git":  ("Git.Git",           "Git"),
+    "node": ("OpenJS.NodeJS.LTS", "Node.js LTS"),
+}
+
+
+def winget_install(cmd_name):
+    """
+    用 winget 静默安装某个依赖, 装完后刷新 PATH 并重新探测。
+    返回 True/False 表示是否成功。
+    """
+    if not IS_WIN or not have("winget"):
+        return False
+    pkg = WINGET_PACKAGES.get(cmd_name)
+    if not pkg:
+        return False
+    winget_id, display = pkg
+
+    info(f"正在用 winget 自动安装 {display} ({winget_id}) ...")
+    info("  (首次使用 winget 可能弹窗要求同意条款, 选 Y 即可)")
+    code, _ = run(
+        f'winget install --id {winget_id} --exact --silent '
+        f'--accept-package-agreements --accept-source-agreements --scope user',
+        shell=True,
+    )
+    refresh_path_from_registry()
+    if have(cmd_name):
+        ok(f"{display} 安装成功")
+        return True
+    warn(f"{display} 安装命令已执行 (winget exit={code}), 但当前会话仍找不到命令")
+    warn("请关闭并重新打开终端后再跑一次本脚本")
+    return False
+
+
 # ---------------------------------------------------------------------------
 # 国内网络优化: npm 镜像探测与切换
 # ---------------------------------------------------------------------------
@@ -169,9 +233,17 @@ def restore_npm_registry(original):
 # ---------------------------------------------------------------------------
 def check_dependencies():
     title("Step 1 / 5  检查前置依赖")
+
+    # Windows 上若 winget 可用, 缺啥就先静默装啥, 一次到位
+    win_auto = IS_WIN and have("winget")
+    if win_auto:
+        info("检测到 winget, 缺失依赖将自动安装 (无需手动下载)")
+
     missing = []
 
     # Git
+    if not have("git") and win_auto:
+        winget_install("git")
     if have("git"):
         _, out = run(["git", "--version"], capture=True)
         ok(f"Git 已安装: {out.strip()}")
@@ -180,6 +252,8 @@ def check_dependencies():
         missing.append("git")
 
     # Node.js
+    if not have("node") and win_auto:
+        winget_install("node")
     if have("node"):
         _, out = run(["node", "-v"], capture=True)
         ver = out.strip().lstrip("v")
@@ -193,7 +267,7 @@ def check_dependencies():
         err("未检测到 Node.js")
         missing.append("node")
 
-    # npm
+    # npm (随 Node.js 一起来, 一般不会单独缺)
     if have("npm"):
         _, out = run(["npm", "-v"], capture=True)
         ok(f"npm 已安装: v{out.strip()}")
@@ -206,8 +280,14 @@ def check_dependencies():
         err("以下依赖缺失或不满足: " + ", ".join(missing))
         print()
         if IS_WIN:
-            print("  • Git:     https://git-scm.com/download/win")
-            print("  • Node.js: https://nodejs.org/  (选 LTS 版本即可)")
+            if have("winget"):
+                print("  自动安装失败, 请手动执行 (任选一行):")
+                print("    winget install --id Git.Git -e")
+                print("    winget install --id OpenJS.NodeJS.LTS -e")
+                print("  装完后【关闭并重新打开】终端, 再跑本脚本。")
+            else:
+                print("  • Git:     https://git-scm.com/download/win")
+                print("  • Node.js: https://nodejs.org/  (选 LTS 版本即可)")
         elif IS_MAC:
             print("  • 推荐用 Homebrew: brew install git node")
         else:
