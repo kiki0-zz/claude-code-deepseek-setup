@@ -1,15 +1,11 @@
 ﻿# ==============================================================================
 # Claude Code + DeepSeek 一键安装入口 (Windows PowerShell)
 #
-# 推荐用法 (复制整段, 一次性粘到 PowerShell 里回车):
-#   Set-ExecutionPolicy -Scope Process Bypass -Force; `
-#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-#   irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+# 推荐用法 (复制整行, 粘到 PowerShell 里回车):
+#   Set-ExecutionPolicy -Scope Process Bypass -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 #
 # 国内加速 (无需梯子):
-#   Set-ExecutionPolicy -Scope Process Bypass -Force; `
-#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-#   irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+#   Set-ExecutionPolicy -Scope Process Bypass -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 #
 # 为什么需要前两段:
 #   1. PowerShell 默认 ExecutionPolicy=Restricted, 不加 Bypass 会静默失败 (光标直接回去)

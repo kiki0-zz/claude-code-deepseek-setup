@@ -66,15 +66,16 @@ npm config set registry https://registry.npmmirror.com
 curl -fsSL https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.sh | bash
 ```
 
-### Windows PowerShell(整段一次性粘贴回车)
+### Windows PowerShell(复制整行,粘贴回车即可)
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass -Force; `
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+Set-ExecutionPolicy -Scope Process Bypass -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 ```
 
-> ⚠️ **Windows 用户务必用上面这一整段**,不能只执行 `irm ... | iex` 那一行。
-> 原因:PowerShell 默认 `ExecutionPolicy=Restricted` 会**静默吞掉脚本**(光标直接回到提示符,看着像没反应);PowerShell 5.1 默认禁用 TLS1.2,`irm` 也会**静默失败**。前两行就是用来绕开这两个坑的。
+> ⚠️ **务必复制整行**,不要只复制末尾 `irm ... | iex` 那一段。
+> 前面两段是用来绕开 Windows 的两个静默坑:
+> - `Set-ExecutionPolicy -Scope Process Bypass -Force`:临时允许执行远程脚本(`-Scope Process` 只对当前窗口生效,关掉就恢复,**不会改你系统设置**)
+> - `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`:强开 TLS1.2,否则 PowerShell 5.1 拿不到 HTTPS 内容
+> 不加这两段,你只会看到光标直接回到提示符,以为命令"没反应"。
 
 ### 🇨🇳 国内加速版(无需梯子)
 
@@ -84,10 +85,8 @@ curl -fsSL https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claud
 ```
 
 ```powershell
-# Windows PowerShell (整段一次性粘贴)
-Set-ExecutionPolicy -Scope Process Bypass -Force; `
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+# Windows PowerShell (复制整行)
+Set-ExecutionPolicy -Scope Process Bypass -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://gh-proxy.com/https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 ```
 
 > 入口脚本会**先尝试 GitHub 官方源,失败时自动切到 gh-proxy.com 镜像**,所以国内用户用上面任意一条都行。
@@ -188,11 +187,9 @@ A: 这是 Windows 上**最常见**的坑,根本原因有两个:
 1. PowerShell 默认 `ExecutionPolicy=Restricted`,会**静默拒绝**远程脚本
 2. PowerShell 5.1(Win10/11 自带版)默认禁用 TLS1.2,`Invoke-RestMethod` 拿不到 HTTPS 内容
 
-✅ **解决办法:用本 README 顶部的"整段三行"命令**,前两行就是用来解决这两个问题的:
+✅ **解决办法:用本 README 顶部的整行命令**,前两段就是用来解决这两个问题的:
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass -Force; `
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; `
-irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
+Set-ExecutionPolicy -Scope Process Bypass -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm https://raw.githubusercontent.com/kiki0-zz/claude-code-deepseek-setup/main/install.ps1 | iex
 ```
 `-Scope Process` 表示**只对当前 PowerShell 窗口生效**,关掉就恢复,不会改你系统设置 ✅
 
